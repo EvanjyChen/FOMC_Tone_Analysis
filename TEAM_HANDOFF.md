@@ -96,12 +96,12 @@ Suggested contribution split:
 
 ## FinBERT Note
 
-There is an optional file:
+There is an optional advanced model file:
 `scripts/finbert_optional.py`
 
-Current project uses the dictionary model as the main reproducible method. FinBERT is included as an advanced extension scaffold, but the project does not currently claim a fully fine-tuned FinBERT model. In presentation, phrase this carefully:
+Current project uses the dictionary model as the main reproducible method. `scripts/finbert_optional.py` now supports full FinBERT fine-tuning with either reviewed labels or weak dictionary-generated labels. In presentation, phrase this carefully if only weak labels are used:
 
-"We implemented a transparent dictionary-based sentence classifier as the reproducible baseline, and included a FinBERT extension path for future improvement or optional comparison."
+"We implemented a transparent dictionary-based sentence classifier as the reproducible baseline, and added a FinBERT fine-tuning workflow for the advanced model path. In the current reproducible version, FinBERT can be trained with weak labels generated from the dictionary; manually reviewed labels would be preferred for final research claims."
 
 ## Remaining To-Do
 

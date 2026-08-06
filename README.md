@@ -8,7 +8,7 @@ This project estimates the policy stance embedded in Federal Open Market Committ
 
 - `scripts/fetch_data.py`: downloads public FOMC minutes and FRED Treasury yield data.
 - `scripts/analyze_tone.py`: sentence splitting, dictionary scoring, aggregation, evaluation, and figure generation.
-- `scripts/finbert_optional.py`: optional FinBERT inference/fine-tuning scaffold for the advanced model section.
+- `scripts/finbert_optional.py`: optional FinBERT fine-tuning workflow for the advanced model section.
 - `scripts/make_report.py`: generates the final PDF report from computed results.
 - `scripts/make_slides.py`: generates presentation slides as a PDF.
 - `data/raw/`: downloaded raw text/market data.
@@ -51,7 +51,13 @@ The main reproducible model is a dictionary baseline. Each FOMC minute is split 
 net hawkish score = (hawkish sentence count - dovish sentence count) / total sentence count
 ```
 
-The optional advanced path uses FinBERT (`ProsusAI/finbert`) as a sentence encoder/classifier. It is included as a scaffold because fine-tuning requires either manually reviewed labels or OpenAI/API-generated labels, which should be produced by the student/team before submission if the advanced model is demonstrated live.
+The optional advanced path fine-tunes FinBERT (`ProsusAI/finbert`) as a hawkish/dovish/neutral sentence classifier. It supports reviewed labels through a CSV with `sentence,label` columns. If reviewed labels are not available, it can build a balanced weak-supervision training set from the dictionary classifier:
+
+```bash
+python3 scripts/finbert_optional.py --epochs 2 --batch-size 8
+```
+
+The script saves the fine-tuned model under `models/finbert_policy_tone/`, exports validation metrics, writes `data/processed/finbert_sentence_predictions.csv`, and aggregates `data/processed/finbert_document_scores.csv`.
 
 ## Deliverables
 
