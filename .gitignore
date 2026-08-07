@@ -4,3 +4,11 @@ __pycache__/
 .cache/
 .mplconfig/
 figures/test_plot.png
+
+*.safetensors
+
+# Nix
+.direnv/
+# Python linter/formatter
+.ruff/
+.ruff_cache/
