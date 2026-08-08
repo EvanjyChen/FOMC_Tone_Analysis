@@ -1,0 +1,33 @@
+{
+  "audit_rows": 30,
+  "labels": [
+    "dovish",
+    "neutral",
+    "hawkish"
+  ],
+  "sampling": {
+    "seed": 17,
+    "per_dictionary_predicted_class": 10,
+    "excluded_weak_label_pool_max_per_class": 800,
+    "spread_rule": "select years at even intervals across the corpus before filling from unused document dates"
+  },
+  "annotation": {
+    "blind_columns": [
+      "audit_id",
+      "date",
+      "sentence",
+      "manual_label"
+    ],
+    "rubric": {
+      "hawkish": "expresses or supports tighter policy, restraint, or inflation pressure requiring tightening",
+      "dovish": "expresses or supports easier policy, accommodation, or weakness requiring support",
+      "neutral": "expresses neither direction, balances both directions, or lacks enough context"
+    }
+  },
+  "limitations": [
+    "The human audit contains only 30 sentences.",
+    "One annotator does not measure inter-rater agreement.",
+    "Stratification by dictionary prediction does not reproduce the corpus class distribution.",
+    "FinBERT was trained with dictionary-generated weak labels; the audit is its independent evaluation."
+  ]
+}
