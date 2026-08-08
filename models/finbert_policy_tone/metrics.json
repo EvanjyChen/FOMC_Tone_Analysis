@@ -1,0 +1,67 @@
+{
+  "model_name": "ProsusAI/finbert",
+  "device": "cuda",
+  "train_rows": 1920,
+  "validation_rows": 480,
+  "epochs": 2,
+  "batch_size": 8,
+  "learning_rate": 2e-05,
+  "max_length": 160,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.6527975730753194,
+      "val_loss": 0.25861209028710924,
+      "val_accuracy": 0.925,
+      "val_macro_f1": 0.9248109863414392
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.17972714042601487,
+      "val_loss": 0.292257480074962,
+      "val_accuracy": 0.8916666666666667,
+      "val_macro_f1": 0.8932235817023598
+    }
+  ],
+  "classification_report": {
+    "dovish": {
+      "precision": 0.9927007299270073,
+      "recall": 0.85,
+      "f1-score": 0.9158249158249159,
+      "support": 160.0
+    },
+    "neutral": {
+      "precision": 0.9507042253521126,
+      "recall": 0.84375,
+      "f1-score": 0.8940397350993378,
+      "support": 160.0
+    },
+    "hawkish": {
+      "precision": 0.7810945273631841,
+      "recall": 0.98125,
+      "f1-score": 0.8698060941828255,
+      "support": 160.0
+    },
+    "accuracy": 0.8916666666666667,
+    "macro avg": {
+      "precision": 0.9081664942141013,
+      "recall": 0.8916666666666666,
+      "f1-score": 0.8932235817023598,
+      "support": 480.0
+    },
+    "weighted avg": {
+      "precision": 0.9081664942141014,
+      "recall": 0.8916666666666667,
+      "f1-score": 0.8932235817023596,
+      "support": 480.0
+    }
+  },
+  "training_provenance": {
+    "label_source": "weak dictionary labels",
+    "seed": 42,
+    "validation_fraction": 0.2,
+    "split_method": "stratified train_test_split",
+    "base_model_url": "https://huggingface.co/ProsusAI/finbert",
+    "metric_context": "weak-label validation (teacher-label agreement)"
+  }
+}
