@@ -37,6 +37,7 @@ from analyze_tone import score_sentence, split_sentences  # noqa: E402
 
 
 MODEL_NAME = "ProsusAI/finbert"
+MODEL_URL = f"https://huggingface.co/{MODEL_NAME}"
 LABELS = ["dovish", "neutral", "hawkish"]
 LABEL_TO_ID = {label: idx for idx, label in enumerate(LABELS)}
 ID_TO_LABEL = {idx: label for label, idx in LABEL_TO_ID.items()}
@@ -156,6 +157,7 @@ def train_model(
     batch_size: int,
     learning_rate: float,
     max_length: int,
+    training_provenance: dict[str, object],
 ) -> dict[str, object]:
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -231,6 +233,7 @@ def train_model(
         "batch_size": batch_size,
         "learning_rate": learning_rate,
         "max_length": max_length,
+        "training_provenance": training_provenance,
         "history": history,
         "classification_report": report,
     }
@@ -330,6 +333,19 @@ def main() -> None:
         random_state=args.seed,
         stratify=labeled["label"],
     )
+    metric_context = (
+        "independent reviewed-label validation"
+        if args.labels_csv
+        else "weak-label validation (teacher-label agreement)"
+    )
+    training_provenance = {
+        "label_source": label_source,
+        "seed": args.seed,
+        "validation_fraction": args.validation_size,
+        "split_method": "stratified train_test_split",
+        "base_model_url": MODEL_URL,
+        "metric_context": metric_context,
+    }
     result = train_model(
         train_df=train_df,
         val_df=val_df,
@@ -338,6 +354,7 @@ def main() -> None:
         batch_size=args.batch_size,
         learning_rate=args.learning_rate,
         max_length=args.max_length,
+        training_provenance=training_provenance,
     )
 
     if not args.skip_predict_all:
