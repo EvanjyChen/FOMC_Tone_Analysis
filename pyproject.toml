@@ -1,0 +1,38 @@
+[project]
+name = "fomc_tone_analysis"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+  "ipykernel",
+  "jupyterlab",
+  "pandas",
+  "numpy",
+  "matplotlib",
+  "scipy",
+  "scikit-learn",
+  "beautifulsoup4",
+  "requests",
+  "pypdf",
+  "transformers",
+  "torch",
+]
+
+# https://docs.astral.sh/ruff/formatter/#configuration
+[tool.ruff.format]
+docstring-code-format = true
+# https://docs.astral.sh/ruff/linter/#rule-selection
+[tool.ruff.lint]
+select = [
+  # pycodestyle
+  "E",
+  # Pyflakes
+  "F",
+  # pyupgrade
+  "UP",
+  # flake8-bugbear
+  "B",
+  # flake8-simplify
+  "SIM",
+  # isort
+  "I",
+]
