@@ -182,7 +182,7 @@ def make_figures(df: pd.DataFrame) -> None:
     ax.plot(x, m * x + b, color="#9a3b26", lw=2)
     ax.set_xlabel("Net hawkish tone, 3-meeting MA x 100")
     ax.set_ylabel("10-year Treasury yield (%)")
-    ax.set_title("Cross-sectional Association at FOMC Dates")
+    ax.set_title("Descriptive Association at FOMC Meeting Dates")
     fig.tight_layout()
     fig.savefig(fig_dir / "tone_yield_scatter.png", dpi=220)
     plt.close(fig)
