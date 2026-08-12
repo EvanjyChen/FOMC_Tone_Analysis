@@ -13,7 +13,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 from analyze_tone import score_sentence
-from finbert_optional import LABELS
+from finbert_optional import LABELS, build_weak_labels
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
     accuracy_score,
@@ -56,6 +56,90 @@ def validate_audit(audit: pd.DataFrame, path: Path) -> pd.DataFrame:
             "One or more audit_id values do not match their date and sentence"
         )
     return audit
+
+
+def canonical_frame_sha256(frame: pd.DataFrame, columns: list[str]) -> str:
+    records = (
+        frame.loc[:, columns]
+        .astype(str)
+        .sort_values(columns, kind="stable")
+        .to_dict(orient="records")
+    )
+    payload = json.dumps(
+        records, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
+    return hashlib.sha256(payload.encode()).hexdigest()
+
+
+def validate_audit_provenance(
+    audit: pd.DataFrame, manifest_path: Path
+) -> dict[str, object]:
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    weak_config = manifest["weak_pool"]
+    weak_pool = build_weak_labels(
+        Path(weak_config["metadata_path"]),
+        int(weak_config["max_per_class"]),
+        int(weak_config["seed"]),
+    )
+
+    if len(weak_pool) != int(weak_config["rows"]):
+        raise ValueError(
+            f"Weak-label pool has {len(weak_pool)} rows; "
+            f"manifest requires {weak_config['rows']}"
+        )
+    weak_hash = canonical_frame_sha256(weak_pool, ["date", "sentence", "label"])
+    if weak_hash != weak_config["sha256"]:
+        raise ValueError("Weak-label pool does not match the frozen audit manifest")
+
+    audit_hash = canonical_frame_sha256(audit, ["audit_id", "date", "sentence"])
+    if audit_hash != manifest["audit_input_sha256"]:
+        raise ValueError("Audit inputs do not match the frozen audit manifest")
+
+    overlap = set(audit["sentence"]).intersection(weak_pool["sentence"])
+    if overlap:
+        raise ValueError(
+            f"Audit contains {len(overlap)} sentence(s) from the weak-label pool"
+        )
+
+    actual_counts = (
+        audit["dictionary_label"].value_counts().reindex(LABELS, fill_value=0).to_dict()
+    )
+    expected_counts = {
+        label: int(count)
+        for label, count in manifest["expected_dictionary_counts"].items()
+    }
+    if actual_counts != expected_counts:
+        raise ValueError(
+            f"Dictionary-prediction strata are {actual_counts}; "
+            f"manifest requires {expected_counts}"
+        )
+
+    expected_year_counts = {
+        str(year): 1 for year in manifest["expected_years_per_class"]
+    }
+    for label in LABELS:
+        actual_year_counts = (
+            audit.loc[audit["dictionary_label"] == label, "date"]
+            .str[:4]
+            .value_counts()
+            .to_dict()
+        )
+        if actual_year_counts != expected_year_counts:
+            raise ValueError(
+                f"{label} audit years are {actual_year_counts}; "
+                f"manifest requires {expected_year_counts}"
+            )
+
+    return {
+        "selection_status": manifest["selection_status"],
+        "audit_input_hash_verified": True,
+        "weak_pool_hash_verified": True,
+        "weak_pool_rows": len(weak_pool),
+        "weak_pool_overlap": 0,
+        "dictionary_strata_verified": True,
+        "temporal_spread_verified": True,
+        "note": manifest["note"],
+    }
 
 
 def metric_rows(
@@ -157,6 +241,7 @@ def evaluate_audit(args: argparse.Namespace) -> None:
         pd.read_csv(args.audit, keep_default_na=False, dtype={"date": str}), args.audit
     )
     audit["dictionary_label"] = audit["sentence"].map(score_sentence)
+    provenance = validate_audit_provenance(audit, args.audit_manifest)
 
     columns = ["date", "sentence", "finbert_label", "finbert_confidence"]
     finbert = require_columns(
@@ -184,15 +269,7 @@ def evaluate_audit(args: argparse.Namespace) -> None:
     metadata = {
         "audit_rows": len(results),
         "labels": LABELS,
-        "sampling": {
-            "seed": args.seed,
-            "per_dictionary_predicted_class": len(results) // len(LABELS),
-            "excluded_weak_label_pool_max_per_class": args.max_per_class,
-            "spread_rule": (
-                "select years at even intervals across the corpus before filling "
-                "from unused document dates"
-            ),
-        },
+        "provenance": provenance,
         "annotation": {
             "blind_columns": ["audit_id", "date", "sentence", "manual_label"],
             "rubric": {
@@ -221,10 +298,16 @@ def evaluate_audit(args: argparse.Namespace) -> None:
                 "FinBERT was trained with dictionary-generated weak labels; the "
                 "audit is its independent evaluation."
             ),
+            provenance["note"],
         ],
     }
     args.metadata_output.write_text(
         json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
+    )
+    print(
+        "Verified audit provenance: "
+        f"{len(audit)} frozen inputs, {provenance['weak_pool_overlap']} weak-pool "
+        "overlap, balanced dictionary strata, and expected year coverage"
     )
     print(f"Wrote classifier metrics to {args.metrics}")
     print(f"Wrote traceable examples to {args.examples}")
@@ -257,8 +340,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default="data/processed/classifier_evaluation_metadata.json",
     )
-    parser.add_argument("--max-per-class", type=int, default=800)
-    parser.add_argument("--seed", type=int, default=17)
+    parser.add_argument(
+        "--audit-manifest",
+        type=Path,
+        default="data/processed/audit_selection_manifest.json",
+    )
     return parser
 
 
