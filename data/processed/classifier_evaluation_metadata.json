@@ -1,0 +1,38 @@
+{
+  "audit_rows": 30,
+  "labels": [
+    "dovish",
+    "neutral",
+    "hawkish"
+  ],
+  "provenance": {
+    "selection_status": "historical_selection_frozen",
+    "audit_input_hash_verified": true,
+    "weak_pool_hash_verified": true,
+    "weak_pool_rows": 2400,
+    "weak_pool_overlap": 0,
+    "dictionary_strata_verified": true,
+    "temporal_spread_verified": true,
+    "note": "The exact historical random-selection procedure was not preserved; these audit inputs are frozen and validated."
+  },
+  "annotation": {
+    "blind_columns": [
+      "audit_id",
+      "date",
+      "sentence",
+      "manual_label"
+    ],
+    "rubric": {
+      "hawkish": "expresses or supports tighter policy, restraint, or inflation pressure requiring tightening",
+      "dovish": "expresses or supports easier policy, accommodation, or weakness requiring support",
+      "neutral": "expresses neither direction, balances both directions, or lacks enough context"
+    }
+  },
+  "limitations": [
+    "The human audit contains only 30 sentences.",
+    "One annotator does not measure inter-rater agreement.",
+    "Stratification by dictionary prediction does not reproduce the corpus class distribution.",
+    "FinBERT was trained with dictionary-generated weak labels; the audit is its independent evaluation.",
+    "The exact historical random-selection procedure was not preserved; these audit inputs are frozen and validated."
+  ]
+}

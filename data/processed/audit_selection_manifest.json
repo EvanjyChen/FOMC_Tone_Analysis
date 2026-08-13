@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "selection_status": "historical_selection_frozen",
+  "audit_input_sha256": "f63cc77cfb12fb85e050e875af9c8637aef8e1eb4a97136ff25bddbcc5ffc3a7",
+  "weak_pool": {
+    "metadata_path": "data/processed/fomc_metadata.csv",
+    "seed": 42,
+    "max_per_class": 800,
+    "rows": 2400,
+    "sha256": "6e4a0b298b015146996545b23ed89010cfb4cad9ed576c8f5fc1a707ecfe6878"
+  },
+  "expected_dictionary_counts": {
+    "dovish": 10,
+    "neutral": 10,
+    "hawkish": 10
+  },
+  "expected_years_per_class": [
+    2008,
+    2010,
+    2012,
+    2014,
+    2016,
+    2018,
+    2020,
+    2022,
+    2024,
+    2026
+  ],
+  "note": "The exact historical random-selection procedure was not preserved; these audit inputs are frozen and validated."
+}

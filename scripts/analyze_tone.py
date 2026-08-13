@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compute hawkish-dovish FOMC tone scores and market validation charts."""
+"""Compute hawkish-dovish FOMC tone scores and market-association charts."""
 
 from __future__ import annotations
 
@@ -20,7 +20,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy import stats
-from sklearn.metrics import ConfusionMatrixDisplay
 
 
 HAWKISH_TERMS = {
@@ -183,18 +182,9 @@ def make_figures(df: pd.DataFrame) -> None:
     ax.plot(x, m * x + b, color="#9a3b26", lw=2)
     ax.set_xlabel("Net hawkish tone, 3-meeting MA x 100")
     ax.set_ylabel("10-year Treasury yield (%)")
-    ax.set_title("Cross-sectional Association at FOMC Dates")
+    ax.set_title("Descriptive Association at FOMC Meeting Dates")
     fig.tight_layout()
     fig.savefig(fig_dir / "tone_yield_scatter.png", dpi=220)
-    plt.close(fig)
-
-    sample_true = ["hawkish", "hawkish", "dovish", "dovish", "neutral", "neutral", "hawkish", "dovish", "neutral"]
-    sample_pred = ["hawkish", "neutral", "dovish", "dovish", "neutral", "hawkish", "hawkish", "neutral", "neutral"]
-    fig, ax = plt.subplots(figsize=(5, 4))
-    ConfusionMatrixDisplay.from_predictions(sample_true, sample_pred, ax=ax, colorbar=False, cmap="Blues")
-    ax.set_title("Illustrative Manual Audit Confusion Matrix")
-    fig.tight_layout()
-    fig.savefig(fig_dir / "confusion_matrix_audit.png", dpi=220)
     plt.close(fig)
 
 
@@ -207,10 +197,14 @@ def main() -> None:
     corr = correlation_table(market)
     corr.to_csv("data/processed/correlation_results.csv", index=False)
     make_figures(market)
-    best = corr.sort_values("p_value").iloc[0]
+    largest_observed = corr.loc[corr["pearson_r"].abs().idxmax()]
     print(f"Scored {len(scores)} FOMC minutes.")
-    print(f"Best validation: lag={int(best.tone_lag_meetings)}, {best.market_series}, r={best.pearson_r:.3f}, p={best.p_value:.4f}.")
-
+    print(
+        "Largest observed exploratory correlation: "
+        f"{largest_observed.market_series}, "
+        f"lag={int(largest_observed.tone_lag_meetings)}, "
+        f"r={largest_observed.pearson_r:.3f}."
+    )
 
 if __name__ == "__main__":
     main()
